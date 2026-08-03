@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Timekeeper</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0e0d0c;
+    font-family: Arial, sans-serif;
+  }
+
+  .panel {
+    width: 340px;
+    background: #24211c;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+
+  .tabs {
+    display: flex;
+    background: #121110;
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #8a8276;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .tabs button.active {
+    background: #322e26;
+    color: #ffb454;
+  }
+
+  .screen {
+    background: #121110;
+    border-radius: 10px;
+    padding: 30px 10px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 42px;
+    color: #ffb454;
+    text-shadow: 0 0 10px rgba(255,140,0,0.5);
+    margin-bottom: 16px;
+  }
+
+  .hidden { display: none; }
+
+  .controls { display: flex; gap: 10px; justify-content: center; }
+  .controls button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    background: #ffb454;
+    color: #241a00;
+  }
+  .controls button.reset { background: #d9402c; color: #fff; }
+
+  .setup {
+    text-align: center;
+    color: #8a8276;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .setup input {
+    width: 50px;
+    font-size: 16px;
+    text-align: center;
+    border-radius: 6px;
+    border: none;
+    padding: 5px;
+    margin: 0 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="panel">
+
+  <div class="tabs">
+    <button class="active" onclick="showTab('clock')">CLOCK</button>
+    <button onclick="showTab('stopwatch')">STOPWATCH</button>
+    <button onclick="showTab('countdown')">COUNTDOWN</button>
+  </div>
+
+  <!-- CLOCK -->
+  <div id="clock">
+    <div class="screen" id="clockDisplay">00:00:00</div>
+  </div>
+
+  <!-- STOPWATCH -->
+  <div id="stopwatch" class="hidden">
+    <div class="screen" id="swDisplay">00:00:00</div>
+    <div class="controls">
+      <button onclick="startStopwatch()">Start</button>
+      <button onclick="pauseStopwatch()">Pause</button>
+      <button class="reset" onclick="resetStopwatch()">Reset</button>
+    </div>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown" class="hidden">
+    <div class="screen" id="cdDisplay">00:00:00</div>
+    <div class="setup">
+      <input type="number" id="cdMinutes" value="5" min="0"> minutes
+    </div>
+    <div class="controls">
+      <button onclick="startCountdown()">Start</button>
+      <button class="reset" onclick="resetCountdown()">Reset</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = t => [t/3600, t/60%60, t%60].map(n => String(Math.floor(n)).padStart(2,'0')).join(':');
+
+  function showTab(tab) {
+    ['clock','stopwatch','countdown'].forEach(id => {
+      document.getElementById(id).classList.toggle('hidden', id !== tab);
+    });
+    document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  // CLOCK
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('clockDisplay').textContent =
+      [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+  }, 1000);
+
+  // STOPWATCH
+  let swSeconds = 0, swTimer = null;
+  function startStopwatch() {
+    if (swTimer) return;
+    swTimer = setInterval(() => {
+      document.getElementById('swDisplay').textContent = fmt(++swSeconds);
+    }, 1000);
+  }
+  function pauseStopwatch() { clearInterval(swTimer); swTimer = null; }
+  function resetStopwatch() { pauseStopwatch(); swSeconds = 0; document.getElementById('swDisplay').textContent = fmt(0); }
+
+  // COUNTDOWN
+  let cdSeconds = 0, cdTimer = null;
+  function startCountdown() {
+    if (cdTimer) return;
+    if (cdSeconds === 0) cdSeconds = document.getElementById('cdMinutes').value * 60;
+    cdTimer = setInterval(() => {
+      document.getElementById('cdDisplay').textContent = fmt(--cdSeconds);
+      if (cdSeconds <= 0) { clearInterval(cdTimer); cdTimer = null; alert("Time's up!"); }
+    }, 1000);
+  }
+  function resetCountdown() { clearInterval(cdTimer); cdTimer = null; cdSeconds = 0; document.getElementById('cdDisplay').textContent = fmt(0); }
+</script>
+
+</body>
+</html>
